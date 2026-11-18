@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import process from 'node:process'
 // import { pathToFileURL } from 'node:url'
 
 const brand = process.argv[2] || process.env.BRAND || 'demo'
