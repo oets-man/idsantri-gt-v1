@@ -22,7 +22,7 @@ class Api {
     this.#removeToken()
   }
 
-  async performFetch(endPoint, options = {}) {
+  async #performFetch(endPoint, options = {}) {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
     const token = this.#getToken()
 
@@ -50,10 +50,10 @@ class Api {
       }
     }
 
-    let payload = null
+    let responseJson = null
     if (responseText) {
       try {
-        payload = JSON.parse(responseText)
+        responseJson = JSON.parse(responseText)
       } catch {
         return {
           error: true,
@@ -67,36 +67,13 @@ class Api {
     }
 
     if (!response.ok) {
-      return {
-        error: true,
-        message:
-          payload && typeof payload === 'object'
-            ? payload.message || `Permintaan gagal (HTTP ${response.status})`
-            : `Permintaan gagal (HTTP ${response.status})`,
-        type: 'error',
-        data: payload && typeof payload === 'object' && 'data' in payload ? payload.data : payload,
-      }
+      throw responseJson
     }
-
-    if (payload && typeof payload === 'object' && typeof payload.error === 'boolean') {
-      return {
-        error: payload.error,
-        message: payload.message || (payload.error ? 'Permintaan gagal' : 'Berhasil'),
-        type: payload.error ? 'error' : payload.type || 'success',
-        data: 'data' in payload ? payload.data : payload,
-      }
-    }
-
-    return {
-      error: false,
-      message: 'Berhasil',
-      type: 'success',
-      data: payload,
-    }
+    return responseJson
   }
 
   async register(gt_id, otp, email) {
-    const response = await this.performFetch('register', {
+    const response = await this.#performFetch('register', {
       method: 'POST',
       body: JSON.stringify({ gt_id, otp, email }),
     })
@@ -104,7 +81,7 @@ class Api {
   }
 
   async requestOtp(email) {
-    const response = await this.performFetch('register', {
+    const response = await this.#performFetch('request-otp', {
       method: 'POST',
       body: JSON.stringify({ email }),
     })
@@ -112,7 +89,7 @@ class Api {
   }
 
   async verifyOtp(email, otp) {
-    const response = await this.performFetch('register', {
+    const response = await this.#performFetch('verify-otp', {
       method: 'POST',
       body: JSON.stringify({ email, otp }),
     })
@@ -123,14 +100,14 @@ class Api {
   }
 
   async getProfile() {
-    const response = await this.performFetch('me', {
+    const response = await this.#performFetch('me', {
       method: 'GET',
     })
     return response
   }
 
   async updateProfile(nomor_telepon) {
-    const response = await this.performFetch('me', {
+    const response = await this.#performFetch('me', {
       method: 'POST',
       body: JSON.stringify({ nomor_telepon }),
     })
